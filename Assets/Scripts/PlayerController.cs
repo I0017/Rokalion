@@ -2,25 +2,29 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private float walkSpeed = 5;
-
-    [SerializeField] private float jumpForce = 10;
-    [SerializeField] private int maxAirJumps = 1;
-    [SerializeField] private int jumpBufferFrames = 60;
-    [SerializeField] private float coyoteTime = 0.1f;
+    [Header("Movement Settings")]
+    [SerializeField] private float walkSpeed;
+    [SerializeField] private float jumpForce;
+    [SerializeField] private int maxAirJumps;
+    [SerializeField] private int jumpBufferFrames;
+    [SerializeField] private float coyoteTime;
     [SerializeField] private Transform groundCheckPoint;
-    [SerializeField] private float groundCheckY = 0.2f;
-    [SerializeField] private float groundCheckX = 0.5f;
+    [SerializeField] private float groundCheckY;
+    [SerializeField] private float groundCheckX;
     [SerializeField] private LayerMask whatIsGround;
-    [SerializeField] private LayerMask whatIsPlatform;
+    [Space(7)]
 
+    [Header("Dash Settings")]
     [SerializeField] private float dashSpeed;
     [SerializeField] private float dashTime;
     [SerializeField] private float dashCooldown;
+    [Space(7)]
 
+    [Header("Attack Settings")]
     [SerializeField] Transform SideAttackT;
     [SerializeField] Transform UpAttackT;
     [SerializeField] Transform DownAttackT;
@@ -29,14 +33,32 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Vector2 DownAttackArea;
     [SerializeField] LayerMask attackableLayer;
     [SerializeField] float attackStrength;
+    [Space(7)]
 
-    [SerializeField] int recoilXSteps = 3;
-    [SerializeField] int recoilYSteps = 3;
-    [SerializeField] float recoilXSpeed = 100;
-    [SerializeField] float recoilYSpeed = 100;
+    [Header("Recoil Settings")]
+    [SerializeField] int recoilXSteps;
+    [SerializeField] int recoilYSteps;
+    [SerializeField] float recoilXSpeed;
+    [SerializeField] float recoilYSpeed;
+    [Space(7)]
 
+    [Header("Health Settings")]
+    [SerializeField] GameObject blood;
+    [SerializeField] float hitFlashSpeed;
     public int health;
     public int maxHealth;
+    public delegate void OnHealthChangedDelegate();
+    [HideInInspector] public OnHealthChangedDelegate onHealthChangedCallback;
+    private float healTimer;
+    [SerializeField] float timeToHeal;
+    [Space(7)]
+
+    [Header("Mana Settings")]
+    [SerializeField] Image manaStorage;
+    [SerializeField] float mana;
+    [SerializeField] float manaDrainSpeed;
+    [SerializeField] float manaGain;
+    [Space(7)]
 
     private float xAxis, yAxis;
     private float gravity;
@@ -52,7 +74,10 @@ public class PlayerController : MonoBehaviour
 
     private int stepsXRecoiled, stepsYRecoiled;
 
-    private Vector2 velocity;
+    private bool restoreTime;
+    private float restoreTimeSpeed;
+
+    private SpriteRenderer sr;
     private Rigidbody2D rb;
     [HideInInspector] public PlayerStateList pState;
     Animator animate;
@@ -75,8 +100,11 @@ public class PlayerController : MonoBehaviour
     {
         pState = GetComponent<PlayerStateList>();
         rb = GetComponent<Rigidbody2D>();
+        sr = GetComponent<SpriteRenderer>();
         animate = GetComponent<Animator>();
         gravity = rb.gravityScale;
+        Mana = mana;
+        manaStorage.fillAmount = Mana;
     }
     private void OnDrawGizmos()
     {
@@ -89,6 +117,7 @@ public class PlayerController : MonoBehaviour
     {
         GetInputs();
         UpdateJumpVariables();
+        RestoreTimeScale();
         if (pState.dashing)
         {
             return;
@@ -98,6 +127,8 @@ public class PlayerController : MonoBehaviour
         Jump();
         StartDash();
         Attack();
+        Flash();
+        Heal();
     }
     private void FixedUpdate()
     {
@@ -234,9 +265,12 @@ public class PlayerController : MonoBehaviour
         {
             if (objectsToHit[i].GetComponent<Enemy>() != null)
             {
-                objectsToHit[i].GetComponent<Enemy>().beingAttacked = true;
                 objectsToHit[i].GetComponent<Enemy>().EnemyHit
                     (attackStrength, (transform.position - objectsToHit[i].transform.position).normalized, _recoilStrength);
+                if (objectsToHit[i].CompareTag("Enemy"))
+                {
+                    Mana += manaGain;
+                }
             }
         }
     }
@@ -309,6 +343,8 @@ public class PlayerController : MonoBehaviour
     IEnumerator StopTakingDamage()
     {
         pState.invicible = true;
+        GameObject _bloodParticles = Instantiate(blood, transform.position, Quaternion.identity);
+        Destroy(_bloodParticles, 1.5f);
         yield return new WaitForSeconds(1f);
         pState.invicible = false;
     }
@@ -323,8 +359,85 @@ public class PlayerController : MonoBehaviour
             if (health != value)
             {
                 health = Mathf.Clamp(value, 0, maxHealth);
+                if (onHealthChangedCallback != null)
+                {
+                    onHealthChangedCallback.Invoke();
+                }
             }
         }
+    }
+    void Heal()
+    {
+        if (Input.GetButton("Cast") && Health < maxHealth && Mana > 0 && !pState.dashing && !pState.jumping)
+        {
+            pState.healing = true;
+            healTimer += Time.deltaTime;
+            if (healTimer >= timeToHeal)
+            {
+                Health += 1;
+                healTimer = 0;
+            }
+            Mana -= Time.deltaTime * manaDrainSpeed;
+        }
+        else
+        {
+            pState.healing = false;
+            healTimer = 0;
+        }
+    }
+    float Mana
+    {
+        get
+        {
+            return mana;
+        }
+        set
+        {
+            if (mana != value)
+            {
+                mana = Mathf.Clamp(value, 0, 1);
+                manaStorage.fillAmount = Mana;
+            }
+        }
+    }
+    public void HitStopTime(float _newTimeScale, int _restoreSpeed, float _delay)
+    {
+        restoreTimeSpeed = _restoreSpeed;
+        Time.timeScale = _newTimeScale;
+        if (_delay > 0)
+        {
+            StopCoroutine(StartTimeAgain(_delay));
+            StartCoroutine(StartTimeAgain(_delay));
+        }
+        else
+        {
+            restoreTime = true;
+        }
+    }
+    void RestoreTimeScale()
+    {
+        if (restoreTime)
+        {
+            if (Time.timeScale < 1)
+            {
+                Time.timeScale += Time.deltaTime * restoreTimeSpeed;
+            }
+            else
+            {
+                Time.timeScale = 1;
+                restoreTime = false;
+            }
+        }
+    }
+    IEnumerator StartTimeAgain(float _delay)
+    {
+        restoreTime = true;
+        yield return new WaitForSeconds(_delay);
+    }
+    void Flash()
+    {
+        sr.material.color = pState.invicible ? Color.Lerp(Color.white, Color.black,
+            Mathf.PingPong(Time.time * hitFlashSpeed, 1.0f)) : Color.white;
     }
     public bool Grounded()
     {

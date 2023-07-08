@@ -9,8 +9,6 @@ public class Enemy : MonoBehaviour
     [SerializeField] protected float recoilLength;
     [SerializeField] protected float recoilFactor;
     [SerializeField] protected bool isRecoiling = false;
-    
-    public bool beingAttacked = false;
 
     [SerializeField] protected PlayerController player;
     [SerializeField] protected float speed;
@@ -51,11 +49,12 @@ public class Enemy : MonoBehaviour
             rb.AddForce(-_hitForce * recoilFactor * _hitDir);
         }
     }
-    protected void OnTriggerStay2D(Collider2D _other)
+    protected void OnCollisionStay2D(Collision2D _other)
     {
-        if (_other.CompareTag("Player") && !PlayerController.Instance.pState.invicible)
+        if (_other.gameObject.CompareTag("Player") && !PlayerController.Instance.pState.invicible && !PlayerController.Instance.pState.dashing)
         {
             Attack();
+            PlayerController.Instance.HitStopTime(0, 10, 0.5f);
         }
     }
     protected virtual void Attack()
