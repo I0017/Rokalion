@@ -12,7 +12,8 @@ public class Zombie : Enemy
     protected override void Update()
     {
         base.Update();
-        if (!isRecoiling)
+        float distance = Vector3.Distance(PlayerController.Instance.transform.position, this.transform.position);
+        if (!isRecoiling && distance <= chasingDistance)
         {
             transform.position = Vector2.MoveTowards
                 (transform.position, 

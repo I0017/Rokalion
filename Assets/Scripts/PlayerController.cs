@@ -143,12 +143,20 @@ public class PlayerController : MonoBehaviour
     }
     private void Move()
     {
-        rb.velocity = new Vector2(walkSpeed * xAxis, rb.velocity.y);
-        animate.SetBool("Walking", rb.velocity.x != 0 && true);
+        if (canMove())
+        {
+            rb.velocity = new Vector2(walkSpeed * xAxis, rb.velocity.y);
+            animate.SetBool("Walking", rb.velocity.x != 0 && true);
+            pState.walking = true;
+        }
+        else
+        {
+            pState.walking = false;
+        }
     }
     private void Jump()
     {
-        if (pState.jumping)
+        if (pState.jumping && canMove())
         {
             rb.velocity = new Vector3(rb.velocity.x, jumpForce);
             pState.jumping = false;
@@ -444,6 +452,17 @@ public class PlayerController : MonoBehaviour
         if (Physics2D.Raycast(groundCheckPoint.position, Vector2.down, groundCheckY, whatIsGround)
             || Physics2D.Raycast(groundCheckPoint.position + new Vector3(groundCheckX, 0, 0), Vector2.down, groundCheckY, whatIsGround)
             || Physics2D.Raycast(groundCheckPoint.position + new Vector3(-groundCheckX, 0, 0), Vector2.down, groundCheckY, whatIsGround))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    public bool canMove()
+    {
+        if (!pState.inDialogue && !pState.healing)
         {
             return true;
         }

@@ -14,6 +14,8 @@ public class Enemy : MonoBehaviour
     [SerializeField] protected float speed;
     [SerializeField] protected float attackStrength;
 
+    [SerializeField] protected float chasingDistance;
+
     protected float recoilTimer;
 
     protected Rigidbody2D rb;
