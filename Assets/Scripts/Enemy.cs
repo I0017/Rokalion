@@ -56,6 +56,15 @@ public class Enemy : MonoBehaviour
         if (_other.gameObject.CompareTag("Player") && !PlayerController.Instance.pState.invicible && !PlayerController.Instance.pState.dashing)
         {
             Attack();
+            PlayerController.Instance.kbCounter = PlayerController.Instance.kbTotalTime;
+            if (_other.transform.position.x <= transform.position.x)
+            {
+                PlayerController.Instance.kbFromRight = true;
+            }
+            else
+            {
+                PlayerController.Instance.kbFromRight = false;
+            }
             PlayerController.Instance.HitStopTime(0, 10, 0.5f);
         }
     }

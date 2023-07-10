@@ -35,6 +35,14 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float attackStrength;
     [Space(7)]
 
+    [Header("Knockback Settings")]
+    [SerializeField] float kbForce;
+    [SerializeField] public float kbCounter;
+    [SerializeField] public float kbTotalTime;
+
+    public bool kbFromRight;
+    [Space(7)]
+
     [Header("Recoil Settings")]
     [SerializeField] int recoilXSteps;
     [SerializeField] int recoilYSteps;
@@ -133,7 +141,8 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         if (pState.dashing) return;
-        Recoil();
+        KnockBack();
+        //Recoil();
     }
     void GetInputs()
     {
@@ -149,7 +158,7 @@ public class PlayerController : MonoBehaviour
             animate.SetBool("Walking", rb.velocity.x != 0 && true);
             pState.walking = true;
         }
-        else
+        if (xAxis == 0)
         {
             pState.walking = false;
         }
@@ -282,67 +291,67 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
-    void Recoil()
-    {
-        if (pState.recoilingX)
-        {
-            if (pState.lookingRight)
-            {
-                rb.velocity = new Vector2(-recoilXSpeed, 0);
-            }
-            else
-            {
-                rb.velocity = new Vector2(recoilXSpeed, 0);
-            }
-        }
-        if (pState.recoilingY)
-        {
-            rb.gravityScale = 0;
-            if (yAxis < 0)
-            {
-                rb.velocity = new Vector2(rb.velocity.x, recoilYSpeed);
-            }
-            else
-            {
-                rb.velocity = new Vector2(rb.velocity.x, -recoilYSpeed);
-            }
-            airJumpsCounter = 0;
-        }
-        else
-        {
-            rb.gravityScale = gravity;
-        }
-        if (pState.recoilingX && stepsXRecoiled < recoilXSteps)
-        {
-            stepsXRecoiled += 1;
-        }
-        else
-        {
-            StopRecoilX();
-        }
-        if (pState.recoilingY && stepsYRecoiled < recoilYSteps)
-        {
-            stepsYRecoiled += 1;
-        }
-        else
-        {
-            StopRecoilY();
-        }
-        if (Grounded())
-        {
-            StopRecoilY();
-        }
-    }
-    void StopRecoilX()
-    {
-        stepsXRecoiled = 0;
-        pState.recoilingX = false;
-    }
-    void StopRecoilY()
-    {
-        stepsYRecoiled = 0;
-        pState.recoilingY = false;
-    }
+    //void Recoil()
+    //{
+    //    if (pState.recoilingX)
+    //    {
+    //        if (pState.lookingRight)
+    //        {
+    //            rb.velocity = new Vector2(-recoilXSpeed, 0);
+    //        }
+    //        else
+    //        {
+    //            rb.velocity = new Vector2(recoilXSpeed, 0);
+    //        }
+    //    }
+    //    if (pState.recoilingY)
+    //    {
+    //        rb.gravityScale = 0;
+    //        if (yAxis < 0)
+    //        {
+    //            rb.velocity = new Vector2(rb.velocity.x, recoilYSpeed);
+    //        }
+    //        else
+    //        {
+    //            rb.velocity = new Vector2(rb.velocity.x, -recoilYSpeed);
+    //        }
+    //        airJumpsCounter = 0;
+    //    }
+    //    else
+    //    {
+    //        rb.gravityScale = gravity;
+    //    }
+    //    if (pState.recoilingX && stepsXRecoiled < recoilXSteps)
+    //    {
+    //        stepsXRecoiled += 1;
+    //    }
+    //    else
+    //    {
+    //        StopRecoilX();
+    //    }
+    //    if (pState.recoilingY && stepsYRecoiled < recoilYSteps)
+    //    {
+    //        stepsYRecoiled += 1;
+    //    }
+    //    else
+    //    {
+    //        StopRecoilY();
+    //    }
+    //    if (Grounded())
+    //    {
+    //        StopRecoilY();
+    //    }
+    //}
+    //void StopRecoilX()
+    //{
+    //    stepsXRecoiled = 0;
+    //    pState.recoilingX = false;
+    //}
+    //void StopRecoilY()
+    //{
+    //    stepsYRecoiled = 0;
+    //    pState.recoilingY = false;
+    //}
     public void TakeDamage(float _damage)
     {
         Health -= Mathf.RoundToInt(_damage);
@@ -376,7 +385,7 @@ public class PlayerController : MonoBehaviour
     }
     void Heal()
     {
-        if (Input.GetButton("Cast") && Health < maxHealth && Mana > 0 && !pState.dashing && !pState.jumping)
+        if (Input.GetButton("Cast") && Health < maxHealth && Mana > 0 && !pState.dashing && !pState.jumping && !pState.walking)
         {
             pState.healing = true;
             healTimer += Time.deltaTime;
@@ -446,6 +455,21 @@ public class PlayerController : MonoBehaviour
     {
         sr.material.color = pState.invicible ? Color.Lerp(Color.white, Color.black,
             Mathf.PingPong(Time.time * hitFlashSpeed, 1.0f)) : Color.white;
+    }
+    void KnockBack()
+    {
+        if (kbCounter > 0)
+        {
+            if (kbFromRight)
+            {
+                rb.velocity = new Vector2(-kbForce, kbForce);
+            }
+            else
+            {
+                rb.velocity = new Vector2(kbForce, kbForce);
+            }
+            kbCounter -= Time.deltaTime;
+        }
     }
     public bool Grounded()
     {
