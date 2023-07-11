@@ -132,6 +132,10 @@ public class PlayerController : MonoBehaviour
     }
     void Update()
     {
+        if (pState.cutscene)
+        {
+            return;
+        }
         GetInputs();
         UpdateJumpVariables();
         RestoreTimeScale();
@@ -149,6 +153,10 @@ public class PlayerController : MonoBehaviour
     }
     private void FixedUpdate()
     {
+        if (pState.cutscene)
+        {
+            return;
+        }
         if (pState.dashing) return;
         KnockBack();
         //Recoil();
@@ -465,6 +473,21 @@ public class PlayerController : MonoBehaviour
     {
         sr.material.color = pState.invicible ? Color.Lerp(Color.white, Color.black,
             Mathf.PingPong(Time.time * hitFlashSpeed, 1.0f)) : Color.white;
+    }
+    public IEnumerator WalkIntoNewScene(Vector2 _exitDir, float _delay)
+    {
+        if (_exitDir.y > 0)
+        {
+            rb.velocity = jumpForce * _exitDir;
+        }
+        if (_exitDir.x != 0)
+        {
+            xAxis = _exitDir.x > 0 ? 1 : -1;
+            Move();
+        }
+        Flip();
+        yield return new WaitForSeconds(_delay);
+        pState.cutscene = false;
     }
     void KnockBack()
     {
