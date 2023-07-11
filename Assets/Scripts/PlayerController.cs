@@ -77,6 +77,8 @@ public class PlayerController : MonoBehaviour
     private bool dashed = false;
 
     private bool attack = false;
+    private bool inspect = false;
+
     private float timeBetweenAttack;
     private float timeSinceAttack;
 
@@ -92,6 +94,13 @@ public class PlayerController : MonoBehaviour
 
     public static PlayerController Instance;
 
+    public bool Inspect
+    {
+        get
+        {
+            return inspect;
+        }
+    }
     private void Awake()
     {
         if(Instance != null && Instance != this)
@@ -149,6 +158,7 @@ public class PlayerController : MonoBehaviour
         xAxis = Input.GetAxisRaw("Horizontal");
         yAxis = Input.GetAxisRaw("Vertical");
         attack = Input.GetButtonDown("Attack");
+        inspect = Input.GetButtonDown("Inspect");
     }
     private void Move()
     {
