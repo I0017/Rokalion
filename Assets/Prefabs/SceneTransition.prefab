@@ -41,7 +41,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4640542571245806405}
   - component: {fileID: 7288750163234083653}
-  - component: {fileID: 7210483710923259313}
+  - component: {fileID: 1942792236742344298}
   m_Layer: 0
   m_Name: SceneTransition
   m_TagString: Untagged
@@ -63,7 +63,7 @@ Transform:
   m_Children:
   - {fileID: 5702775860750953504}
   m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!61 &7288750163234083653
 BoxCollider2D:
@@ -110,7 +110,7 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 3.002491, y: 4.8083386}
   m_EdgeRadius: 0
---- !u!114 &7210483710923259313
+--- !u!114 &1942792236742344298
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -119,10 +119,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 3313025739185082509}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9c848b6f600d1cb4e9f9f8d904466143, type: 3}
+  m_Script: {fileID: 11500000, guid: 07601438950e4d1408492e7bf9c5b0fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  transitionTo: MossyCave
-  startingPoint: {fileID: 5702775860750953504}
-  exitDir: {x: 1, y: 0}
-  exitTime: 0.25
+  teleportTo: {fileID: 0}
+  exitDir: {x: 0, y: 0}
+  exitTime: 0
+  fadeTime: 0
+  fadeImage: {fileID: 0}

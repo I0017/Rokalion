@@ -9,7 +9,7 @@ public class PlayerController : MonoBehaviour
     [Header("Movement Settings")]
     [SerializeField] private float walkSpeed;
     [SerializeField] private float jumpForce;
-    [SerializeField] private int maxAirJumps;
+    [SerializeField] public int maxAirJumps;
     [SerializeField] private int jumpBufferFrames;
     [SerializeField] private float coyoteTime;
     [SerializeField] private Transform groundCheckPoint;

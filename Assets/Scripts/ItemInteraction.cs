@@ -24,15 +24,18 @@ public class ItemInteraction : MonoBehaviour
 
     void Update()
     {
-        float distance = Vector3.Distance(PlayerController.Instance.transform.position, this.transform.position);
-        if (distance <= 2 && PlayerController.Instance.Inspect && !canvasIsShown && !canvasWasJustShown)
+        if (Distance() <= 3 && PlayerController.Instance.Inspect && !canvasIsShown && !canvasWasJustShown)
         {
             canvasToShow.gameObject.SetActive(true);
             canvasIsShown = true;
         }
-        if (distance >= 5 && canvasWasJustShown)
+        if (Distance() >= 5 && canvasWasJustShown)
         {
             canvasWasJustShown = false;
         }
+    }
+    private float Distance()
+    {
+        return Vector3.Distance(PlayerController.Instance.transform.position, Instance.transform.position);
     }
 }
