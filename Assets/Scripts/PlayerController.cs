@@ -16,6 +16,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float groundCheckY;
     [SerializeField] private float groundCheckX;
     [SerializeField] private LayerMask whatIsGround;
+    [SerializeField] private GameObject footsteps;
+    [SerializeField] private AudioSource jumpSFX;
+    [SerializeField] private AudioSource hurtSFX;
     [Space(7)]
 
     [Header("Dash Settings")]
@@ -32,14 +35,13 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Vector2 UpAttackArea;
     [SerializeField] Vector2 DownAttackArea;
     [SerializeField] LayerMask attackableLayer;
-    [SerializeField] float attackStrength;
+    [SerializeField] public float attackStrength;
     [Space(7)]
 
     [Header("Knockback Settings")]
     [SerializeField] float kbForce;
     [SerializeField] public float kbCounter;
     [SerializeField] public float kbTotalTime;
-
     public bool kbFromRight;
     [Space(7)]
 
@@ -67,6 +69,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float manaDrainSpeed;
     [SerializeField] float manaGain;
     [Space(7)]
+
+    [SerializeField] public GameObject respawnPoint;
 
     private float xAxis, yAxis;
     private float gravity;
@@ -115,6 +119,7 @@ public class PlayerController : MonoBehaviour
     }
     void Start()
     {
+        StopFootsteps();
         pState = GetComponent<PlayerStateList>();
         rb = GetComponent<Rigidbody2D>();
         sr = GetComponent<SpriteRenderer>();
@@ -159,7 +164,6 @@ public class PlayerController : MonoBehaviour
         }
         if (pState.dashing) return;
         KnockBack();
-        //Recoil();
     }
     void GetInputs()
     {
@@ -170,6 +174,14 @@ public class PlayerController : MonoBehaviour
     }
     private void Move()
     {
+        if (canMove() && Grounded())
+        {
+            Footsteps();
+        }
+        else
+        {
+            StopFootsteps();
+        }
         if (canMove())
         {
             rb.velocity = new Vector2(walkSpeed * xAxis, rb.velocity.y);
@@ -179,12 +191,14 @@ public class PlayerController : MonoBehaviour
         if (xAxis == 0)
         {
             pState.walking = false;
+            StopFootsteps();
         }
     }
     private void Jump()
     {
         if (pState.jumping && canMove())
         {
+            jumpSFX.Play();
             rb.velocity = new Vector3(rb.velocity.x, jumpForce);
             pState.jumping = false;
         }
@@ -309,71 +323,15 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
-    //void Recoil()
-    //{
-    //    if (pState.recoilingX)
-    //    {
-    //        if (pState.lookingRight)
-    //        {
-    //            rb.velocity = new Vector2(-recoilXSpeed, 0);
-    //        }
-    //        else
-    //        {
-    //            rb.velocity = new Vector2(recoilXSpeed, 0);
-    //        }
-    //    }
-    //    if (pState.recoilingY)
-    //    {
-    //        rb.gravityScale = 0;
-    //        if (yAxis < 0)
-    //        {
-    //            rb.velocity = new Vector2(rb.velocity.x, recoilYSpeed);
-    //        }
-    //        else
-    //        {
-    //            rb.velocity = new Vector2(rb.velocity.x, -recoilYSpeed);
-    //        }
-    //        airJumpsCounter = 0;
-    //    }
-    //    else
-    //    {
-    //        rb.gravityScale = gravity;
-    //    }
-    //    if (pState.recoilingX && stepsXRecoiled < recoilXSteps)
-    //    {
-    //        stepsXRecoiled += 1;
-    //    }
-    //    else
-    //    {
-    //        StopRecoilX();
-    //    }
-    //    if (pState.recoilingY && stepsYRecoiled < recoilYSteps)
-    //    {
-    //        stepsYRecoiled += 1;
-    //    }
-    //    else
-    //    {
-    //        StopRecoilY();
-    //    }
-    //    if (Grounded())
-    //    {
-    //        StopRecoilY();
-    //    }
-    //}
-    //void StopRecoilX()
-    //{
-    //    stepsXRecoiled = 0;
-    //    pState.recoilingX = false;
-    //}
-    //void StopRecoilY()
-    //{
-    //    stepsYRecoiled = 0;
-    //    pState.recoilingY = false;
-    //}
     public void TakeDamage(float _damage)
     {
+        hurtSFX.Play();
         Health -= Mathf.RoundToInt(_damage);
         StartCoroutine(StopTakingDamage());
+        if (Health == 0)
+        {
+            Respawn();
+        }
     }
     IEnumerator StopTakingDamage()
     {
@@ -419,6 +377,13 @@ public class PlayerController : MonoBehaviour
             pState.healing = false;
             healTimer = 0;
         }
+    }
+    private void Respawn()
+    {
+        Fade.Instance.fadeNeeded = true;
+        transform.position = respawnPoint.transform.position;
+        Mana = 0;
+        Health = 5;
     }
     float Mana
     {
@@ -476,6 +441,7 @@ public class PlayerController : MonoBehaviour
     }
     public IEnumerator WalkIntoNewScene(Vector2 _exitDir, float _delay)
     {
+        Fade.Instance.fadeNeeded = true;
         if (_exitDir.y > 0)
         {
             rb.velocity = jumpForce * _exitDir;
@@ -527,5 +493,13 @@ public class PlayerController : MonoBehaviour
         {
             return false;
         }
+    }
+    void Footsteps()
+    {
+        footsteps.SetActive(true);
+    }
+    void StopFootsteps()
+    {
+        footsteps.SetActive(false);
     }
 }

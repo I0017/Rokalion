@@ -8,7 +8,7 @@ public class ClosingCanvas : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.F))
+        if (Input.GetKeyDown(KeyCode.E))
         {
             if (ItemInteraction.Instance.canvasIsShown)
             {

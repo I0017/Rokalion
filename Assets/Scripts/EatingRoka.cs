@@ -9,10 +9,11 @@ public class EatingRoka : MonoBehaviour
 
     void Update()
     {
-        if (Distance() <= 3 && PlayerController.Instance.Inspect && !isEaten)
+        if (Distance() <= 5 && PlayerController.Instance.Inspect && !isEaten)
         {
             this.GetComponent<SpriteRenderer>().sprite = eatenRokaSprite;
             PlayerController.Instance.maxAirJumps = 1;
+            PlayerController.Instance.attackStrength = 5;
             isEaten = true;
         }
     }

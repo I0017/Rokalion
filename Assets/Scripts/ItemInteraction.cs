@@ -6,6 +6,7 @@ using UnityEngine;
 public class ItemInteraction : MonoBehaviour
 {
     [SerializeField] GameObject canvasToShow;
+    [SerializeField] GameObject hint;
     public bool canvasIsShown = false;
     public bool canvasWasJustShown = false;
 
@@ -24,12 +25,13 @@ public class ItemInteraction : MonoBehaviour
 
     void Update()
     {
-        if (Distance() <= 3 && PlayerController.Instance.Inspect && !canvasIsShown && !canvasWasJustShown)
+        if (Distance() <= 5 && PlayerController.Instance.Inspect && !canvasIsShown && !canvasWasJustShown)
         {
+            hint.SetActive(false);
             canvasToShow.gameObject.SetActive(true);
             canvasIsShown = true;
         }
-        if (Distance() >= 5 && canvasWasJustShown)
+        if (Distance() >= 6 && canvasWasJustShown)
         {
             canvasWasJustShown = false;
         }

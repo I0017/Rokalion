@@ -8,7 +8,8 @@ public class Enemy : MonoBehaviour
     [SerializeField] protected float health;
     [SerializeField] protected float recoilLength;
     [SerializeField] protected float recoilFactor;
-    [SerializeField] protected bool isRecoiling = false;
+    protected bool isRecoiling = false;
+    protected bool isChasing = false;
 
     [SerializeField] protected PlayerController player;
     [SerializeField] protected float speed;
@@ -19,10 +20,12 @@ public class Enemy : MonoBehaviour
     protected float recoilTimer;
 
     protected Rigidbody2D rb;
+    protected Vector3 objectScale;
     protected virtual void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         player = PlayerController.Instance;
+        objectScale = this.transform.localScale;
     }
     protected virtual void Update()
     {
@@ -51,13 +54,13 @@ public class Enemy : MonoBehaviour
             rb.AddForce(-_hitForce * recoilFactor * _hitDir);
         }
     }
-    protected void OnCollisionStay2D(Collision2D _other)
+    protected virtual void OnCollisionStay2D(Collision2D coll)
     {
-        if (_other.gameObject.CompareTag("Player") && !PlayerController.Instance.pState.invicible && !PlayerController.Instance.pState.dashing)
+        if (coll.gameObject.CompareTag("Player") && !PlayerController.Instance.pState.invicible && !PlayerController.Instance.pState.dashing)
         {
             Attack();
             PlayerController.Instance.kbCounter = PlayerController.Instance.kbTotalTime;
-            if (_other.transform.position.x <= transform.position.x)
+            if (coll.transform.position.x <= transform.position.x)
             {
                 PlayerController.Instance.kbFromRight = true;
             }
@@ -71,5 +74,16 @@ public class Enemy : MonoBehaviour
     protected virtual void Attack()
     {
         PlayerController.Instance.TakeDamage(attackStrength);
+    }
+    protected virtual void Flip()
+    {
+        if (PlayerController.Instance.transform.position.x >= this.transform.position.x)
+        {
+            this.transform.localScale = new Vector3(-objectScale.x, objectScale.y, objectScale.z);
+        }
+        else
+        {
+            this.transform.localScale = new Vector3(objectScale.x, objectScale.y, objectScale.z);
+        }
     }
 }
