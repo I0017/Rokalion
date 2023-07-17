@@ -6,6 +6,14 @@ using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
+    [Header("SFX")]
+    [SerializeField] private GameObject cliffsFootstepsSFX;
+    [SerializeField] private GameObject mossFootstepsSFX;
+    [SerializeField] private GameObject healingSFX;
+    [SerializeField] private AudioSource jumpSFX;
+    [SerializeField] private AudioSource hurtSFX;
+    [Space(7)]
+
     [Header("Movement Settings")]
     [SerializeField] private float walkSpeed;
     [SerializeField] private float jumpForce;
@@ -16,9 +24,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float groundCheckY;
     [SerializeField] private float groundCheckX;
     [SerializeField] private LayerMask whatIsGround;
-    [SerializeField] private GameObject footsteps;
-    [SerializeField] private AudioSource jumpSFX;
-    [SerializeField] private AudioSource hurtSFX;
     [Space(7)]
 
     [Header("Dash Settings")]
@@ -43,13 +48,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] public float kbCounter;
     [SerializeField] public float kbTotalTime;
     public bool kbFromRight;
-    [Space(7)]
-
-    [Header("Recoil Settings")]
-    [SerializeField] int recoilXSteps;
-    [SerializeField] int recoilYSteps;
-    [SerializeField] float recoilXSpeed;
-    [SerializeField] float recoilYSpeed;
     [Space(7)]
 
     [Header("Health Settings")]
@@ -86,8 +84,6 @@ public class PlayerController : MonoBehaviour
     private float timeBetweenAttack;
     private float timeSinceAttack;
 
-    private int stepsXRecoiled, stepsYRecoiled;
-
     private bool restoreTime;
     private float restoreTimeSpeed;
 
@@ -119,11 +115,11 @@ public class PlayerController : MonoBehaviour
     }
     void Start()
     {
-        StopFootsteps();
         pState = GetComponent<PlayerStateList>();
         rb = GetComponent<Rigidbody2D>();
         sr = GetComponent<SpriteRenderer>();
         animate = GetComponent<Animator>();
+        StopFootsteps();
         gravity = rb.gravityScale;
         Mana = mana;
         manaStorage.fillAmount = Mana;
@@ -137,10 +133,6 @@ public class PlayerController : MonoBehaviour
     }
     void Update()
     {
-        if (pState.cutscene)
-        {
-            return;
-        }
         GetInputs();
         UpdateJumpVariables();
         RestoreTimeScale();
@@ -158,11 +150,10 @@ public class PlayerController : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        if (pState.cutscene)
+        if (pState.dashing)
         {
             return;
         }
-        if (pState.dashing) return;
         KnockBack();
     }
     void GetInputs()
@@ -291,15 +282,15 @@ public class PlayerController : MonoBehaviour
             timeSinceAttack = 0;
             if (yAxis == 0 || yAxis < 0 && Grounded())
             {
-                Hit(SideAttackT, SideAttackArea, ref pState.recoilingX, recoilXSpeed);
+                Hit(SideAttackT, SideAttackArea, ref pState.recoilingX, 1);
             }
             else if (yAxis > 0)
             {
-                Hit(UpAttackT, UpAttackArea, ref pState.recoilingY, recoilYSpeed);
+                Hit(UpAttackT, UpAttackArea, ref pState.recoilingY, 1);
             }
             else if (yAxis < 0 && !Grounded())
             {
-                Hit(DownAttackT, DownAttackArea, ref pState.recoilingY, recoilYSpeed);
+                Hit(DownAttackT, DownAttackArea, ref pState.recoilingY, 1);
             }
         }
     }
@@ -363,6 +354,7 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetButton("Cast") && Health < maxHealth && Mana > 0 && !pState.dashing && !pState.jumping && !pState.walking)
         {
+            healingSFX.gameObject.SetActive(true);
             pState.healing = true;
             healTimer += Time.deltaTime;
             if (healTimer >= timeToHeal)
@@ -374,6 +366,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
+            healingSFX.gameObject.SetActive(false);
             pState.healing = false;
             healTimer = 0;
         }
@@ -496,10 +489,19 @@ public class PlayerController : MonoBehaviour
     }
     void Footsteps()
     {
-        footsteps.SetActive(true);
+        if (pState.isInCliffs)
+        {
+            cliffsFootstepsSFX.SetActive(true);
+        }
+        if (pState.isInMoss)
+        {
+            mossFootstepsSFX.SetActive(true);
+        }
+
     }
     void StopFootsteps()
     {
-        footsteps.SetActive(false);
+        cliffsFootstepsSFX.SetActive(false);
+        mossFootstepsSFX.SetActive(false);
     }
 }

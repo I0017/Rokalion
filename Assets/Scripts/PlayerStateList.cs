@@ -13,4 +13,6 @@ public class PlayerStateList : MonoBehaviour
     public bool healing = false;
     public bool inDialogue = false;
     public bool cutscene = false;
+    public bool isInCliffs = true;
+    public bool isInMoss = false;
 }

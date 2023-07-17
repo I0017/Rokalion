@@ -2,22 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEditor.Experimental.AssetDatabaseExperimental.AssetDatabaseCounters;
 
 public class Enemy : MonoBehaviour
 {
     [SerializeField] protected float health;
-    [SerializeField] protected float recoilLength;
-    [SerializeField] protected float recoilFactor;
-    protected bool isRecoiling = false;
     protected bool isChasing = false;
+    [Space(7)]
 
     [SerializeField] protected PlayerController player;
     [SerializeField] protected float speed;
     [SerializeField] protected float attackStrength;
-
     [SerializeField] protected float chasingDistance;
 
-    protected float recoilTimer;
+    public bool isAttacking = false;
+    public bool isBeingAttacked = false;
 
     protected Rigidbody2D rb;
     protected Vector3 objectScale;
@@ -33,41 +32,16 @@ public class Enemy : MonoBehaviour
         {
             Destroy(gameObject);
         }
-        if (isRecoiling)
-        {
-            if (recoilTimer < recoilLength)
-            {
-                recoilTimer += Time.deltaTime;
-            }
-            else
-            {
-                isRecoiling = false;
-                recoilTimer = 0;
-            }
-        }
     }
     public virtual void EnemyHit(float _damage, Vector2 _hitDir, float _hitForce)
     {
         health -= _damage;
-        if(!isRecoiling)
-        {
-            rb.AddForce(-_hitForce * recoilFactor * _hitDir);
-        }
     }
     protected virtual void OnCollisionStay2D(Collision2D coll)
     {
         if (coll.gameObject.CompareTag("Player") && !PlayerController.Instance.pState.invicible && !PlayerController.Instance.pState.dashing)
         {
             Attack();
-            PlayerController.Instance.kbCounter = PlayerController.Instance.kbTotalTime;
-            if (coll.transform.position.x <= transform.position.x)
-            {
-                PlayerController.Instance.kbFromRight = true;
-            }
-            else
-            {
-                PlayerController.Instance.kbFromRight = false;
-            }
             PlayerController.Instance.HitStopTime(0, 10, 0.5f);
         }
     }
