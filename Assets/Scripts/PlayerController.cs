@@ -81,6 +81,7 @@ public class PlayerController : MonoBehaviour
     private int airJumpsCounter = 0;
     private bool canDash = true;
     private bool canJump = true;
+    private bool canAttack = true;
     private bool dashed = false;
 
     private bool attack = false;
@@ -201,12 +202,12 @@ public class PlayerController : MonoBehaviour
         }
         if (!pState.jumping)
         {
-            if (jumpBufferCounter > 0 && coyoteTimeCounter > 0)
+            if (canJump && jumpBufferCounter > 0 && coyoteTimeCounter > 0)
             {
                 rb.velocity = new Vector3(rb.velocity.x, jumpForce);
                 pState.jumping = true;
             }
-            else if (!Grounded() && airJumpsCounter < maxAirJumps && Input.GetButtonDown("Jump") && !dashed)
+            else if (canJump && !Grounded() && airJumpsCounter < maxAirJumps && Input.GetButtonDown("Jump") && !dashed)
             {
                 airJumpsCounter += 1;
                 rb.velocity = new Vector3(rb.velocity.x, jumpForce);
@@ -283,7 +284,7 @@ public class PlayerController : MonoBehaviour
     void Attack()
     {
         timeSinceAttack += Time.deltaTime;
-        if (attack && timeSinceAttack >= timeBetweenAttack && !dashed)
+        if (canAttack && attack && timeSinceAttack >= timeBetweenAttack && !dashed)
         {
             timeSinceAttack = 0;
             animate.SetTrigger("Attacking");
@@ -528,6 +529,7 @@ public class PlayerController : MonoBehaviour
         {
             canDash = false;
             canJump = false;
+            canAttack = false;
             HUD.SetActive(false);
         }
     }
