@@ -5,9 +5,14 @@ using UnityEngine;
 public class EatingRoka : MonoBehaviour
 {
     [SerializeField] private Sprite eatenRokaSprite;
+    [SerializeField] private GameObject hint;
     private bool isEaten = false;
 
-    void Update()
+    private void Start()
+    {
+        hint.SetActive(false);
+    }
+    private void Update()
     {
         if (Distance() <= 5 && PlayerController.Instance.Inspect && !isEaten)
         {
@@ -15,6 +20,7 @@ public class EatingRoka : MonoBehaviour
             PlayerController.Instance.maxAirJumps = 1;
             PlayerController.Instance.attackStrength = 5;
             isEaten = true;
+            hint.SetActive(true);
         }
     }
     private float Distance()

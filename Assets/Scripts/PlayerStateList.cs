@@ -15,4 +15,5 @@ public class PlayerStateList : MonoBehaviour
     public bool cutscene = false;
     public bool isInCliffs = true;
     public bool isInMoss = false;
+    public bool end = false;
 }

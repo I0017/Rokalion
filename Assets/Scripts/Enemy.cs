@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
-using static UnityEditor.Experimental.AssetDatabaseExperimental.AssetDatabaseCounters;
 
 public class Enemy : MonoBehaviour
 {
@@ -28,14 +27,15 @@ public class Enemy : MonoBehaviour
     }
     protected virtual void Update()
     {
-        if (health <= 0)
-        {
-            Destroy(gameObject);
-        }
+
     }
     public virtual void EnemyHit(float _damage, Vector2 _hitDir, float _hitForce)
     {
         health -= _damage;
+        if (health <= 0)
+        {
+            Destroy(gameObject);
+        }
     }
     protected virtual void OnCollisionStay2D(Collision2D coll)
     {

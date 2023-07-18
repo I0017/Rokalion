@@ -12,6 +12,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject healingSFX;
     [SerializeField] private AudioSource jumpSFX;
     [SerializeField] private AudioSource hurtSFX;
+    [SerializeField] private AudioSource attackSFX;
+    [SerializeField] private AudioSource rockEnemyHitSFX;
     [Space(7)]
 
     [Header("Movement Settings")]
@@ -69,6 +71,8 @@ public class PlayerController : MonoBehaviour
     [Space(7)]
 
     [SerializeField] public GameObject respawnPoint;
+    [SerializeField] private GameObject HUD;
+    [SerializeField] private GameObject slashEffect;
 
     private float xAxis, yAxis;
     private float gravity;
@@ -76,6 +80,7 @@ public class PlayerController : MonoBehaviour
     private float coyoteTimeCounter = 0;
     private int airJumpsCounter = 0;
     private bool canDash = true;
+    private bool canJump = true;
     private bool dashed = false;
 
     private bool attack = false;
@@ -140,6 +145,7 @@ public class PlayerController : MonoBehaviour
         {
             return;
         }
+        KnockBack();
         Flip();
         Move();
         Jump();
@@ -147,6 +153,7 @@ public class PlayerController : MonoBehaviour
         Attack();
         Flash();
         Heal();
+        End();
     }
     private void FixedUpdate()
     {
@@ -154,7 +161,6 @@ public class PlayerController : MonoBehaviour
         {
             return;
         }
-        KnockBack();
     }
     void GetInputs()
     {
@@ -187,7 +193,7 @@ public class PlayerController : MonoBehaviour
     }
     private void Jump()
     {
-        if (pState.jumping && canMove())
+        if (pState.jumping && canMove() && canJump)
         {
             jumpSFX.Play();
             rb.velocity = new Vector3(rb.velocity.x, jumpForce);
@@ -280,17 +286,22 @@ public class PlayerController : MonoBehaviour
         if (attack && timeSinceAttack >= timeBetweenAttack && !dashed)
         {
             timeSinceAttack = 0;
+            animate.SetTrigger("Attacking");
+            attackSFX.Play();
             if (yAxis == 0 || yAxis < 0 && Grounded())
             {
                 Hit(SideAttackT, SideAttackArea, ref pState.recoilingX, 1);
+                Instantiate(slashEffect, SideAttackT);
             }
             else if (yAxis > 0)
             {
                 Hit(UpAttackT, UpAttackArea, ref pState.recoilingY, 1);
+                SlashEffectAngle(slashEffect, 90, UpAttackT);
             }
             else if (yAxis < 0 && !Grounded())
             {
                 Hit(DownAttackT, DownAttackArea, ref pState.recoilingY, 1);
+                SlashEffectAngle(slashEffect, -90, DownAttackT);
             }
         }
     }
@@ -309,10 +320,17 @@ public class PlayerController : MonoBehaviour
                     (attackStrength, (transform.position - objectsToHit[i].transform.position).normalized, _recoilStrength);
                 if (objectsToHit[i].CompareTag("Enemy"))
                 {
+                    rockEnemyHitSFX.Play();
                     Mana += manaGain;
                 }
             }
         }
+    }
+    void SlashEffectAngle(GameObject _slashEffect, int _effectAngle, Transform _attackTransform)
+    {
+        _slashEffect = Instantiate(_slashEffect, _attackTransform);
+        _slashEffect.transform.eulerAngles = new Vector3(0, 0, _effectAngle);
+        _slashEffect.transform.localScale = new Vector2(transform.localScale.x, transform.localScale.y);
     }
     public void TakeDamage(float _damage)
     {
@@ -478,7 +496,7 @@ public class PlayerController : MonoBehaviour
     }
     public bool canMove()
     {
-        if (!pState.inDialogue && !pState.healing)
+        if (!pState.inDialogue && !pState.healing && !pState.end)
         {
             return true;
         }
@@ -503,5 +521,14 @@ public class PlayerController : MonoBehaviour
     {
         cliffsFootstepsSFX.SetActive(false);
         mossFootstepsSFX.SetActive(false);
+    }
+    void End()
+    {
+        if (pState.end)
+        {
+            canDash = false;
+            canJump = false;
+            HUD.SetActive(false);
+        }
     }
 }

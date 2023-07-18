@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Tilemaps;
 using UnityEngine;
 
 public class FollowingRockHuman : Enemy
@@ -11,7 +10,6 @@ public class FollowingRockHuman : Enemy
     [Space(7)]
 
     [SerializeField] private GameObject draggingSounds;
-    [SerializeField] private AudioSource hurtSFX;
 
     protected override void Start()
     {
@@ -31,13 +29,13 @@ public class FollowingRockHuman : Enemy
     }
     public override void EnemyHit(float _damage, Vector2 _hitDir, float _hitForce)
     {
-        hurtSFX.Play();
         base.EnemyHit(_damage, _hitDir, _hitForce);
     }
     protected override void OnCollisionStay2D(Collision2D coll)
     {
         if (coll.gameObject.CompareTag("Player") && !PlayerController.Instance.pState.invicible && !PlayerController.Instance.pState.dashing)
         {
+            PlayerController.Instance.kbCounter = PlayerController.Instance.kbTotalTime;
             isAttacking = true;
             base.OnCollisionStay2D(coll);
             this.GetComponent<SpriteRenderer>().sprite = attackSprite;
